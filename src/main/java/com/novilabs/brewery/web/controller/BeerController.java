@@ -38,11 +38,11 @@ public class BeerController {
     @PostMapping
     public ResponseEntity<BeerDto> createBeer(@RequestBody BeerDto beerDto) throws URISyntaxException {
         BeerDto dto = beerService.createBeer(beerDto);
-        return ResponseEntity.created(new URI("/beers/" + dto.getId())).build();
+        return ResponseEntity.created(new URI("/api/v1/beers/" + dto.getId())).build();
     }
 
     @PutMapping("/{uuid}")
-    public ResponseEntity<BeerDto> updateBeer(@PathVariable UUID uuid, @RequestBody BeerDto beerDto) throws URISyntaxException {
+    public ResponseEntity<BeerDto> updateBeer(@PathVariable UUID uuid, @RequestBody BeerDto beerDto) {
         beerService.updateBeer(uuid, beerDto);
         return ResponseEntity.ok().build();
     }
