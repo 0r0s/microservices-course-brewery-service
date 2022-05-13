@@ -16,7 +16,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.UUID;
 
-@RequestMapping("/customers")
+@RequestMapping("/api/v1/customers")
 @RestController
 public class CustomerController {
 

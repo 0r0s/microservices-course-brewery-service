@@ -16,7 +16,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.UUID;
 
-@RequestMapping("/beers")
+@RequestMapping("/api/v1/beers")
 @RestController
 public class BeerController {
 
