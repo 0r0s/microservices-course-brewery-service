@@ -2,14 +2,15 @@ package com.novilabs.brewery.service;
 
 import org.springframework.context.ApplicationEvent;
 
-public class DistributorRestockEvent extends ApplicationEvent {
+public class DistributorRestockEventFulfilled extends ApplicationEvent {
     private String distributorId;
-    private String upc;
+    private String beerId;
     private Long count;
-    public DistributorRestockEvent(Object source, String distributorId, String beerId, Long count) {
+
+    public DistributorRestockEventFulfilled(Object source, String distributorId, String beerId, Long count) {
         super(source);
         this.distributorId = distributorId;
-        this.upc = beerId;
+        this.beerId = beerId;
         this.count = count;
     }
 
@@ -17,8 +18,8 @@ public class DistributorRestockEvent extends ApplicationEvent {
         return distributorId;
     }
 
-    public String getUpc() {
-        return upc;
+    public String getBeerId() {
+        return beerId;
     }
 
     public Long getCount() {

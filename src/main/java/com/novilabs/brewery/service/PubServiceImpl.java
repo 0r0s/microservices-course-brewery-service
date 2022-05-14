@@ -44,6 +44,12 @@ public class PubServiceImpl implements PubService {
             unfulfilledOrder.setId(id);
             unfulfilledOrder.setOrderState(OrderState.PENDING);
             pub.getOrders().put(id, unfulfilledOrder);
+        } else {
+            Order unfulfilledOrder = new Order();
+            String id = UUID.randomUUID().toString();
+            unfulfilledOrder.setId(id);
+            unfulfilledOrder.setOrderState(OrderState.FULFILLED);
+            pub.getOrders().put(id, unfulfilledOrder);
         }
         return remaining;
     }
@@ -55,9 +61,10 @@ public class PubServiceImpl implements PubService {
             throw new IllegalArgumentException(format("Pub with id %s does not exist", pubId));
         }
         ConcurrentHashMap<String, Long> pubStock = pub.getPubStock();
+        pubStock.putIfAbsent(beerId, 0L);
         Long allBeersOfThatType = pubStock.get(beerId);
-        Long availableToSell = Math.max(allBeersOfThatType, count);
-        pubStock.put(beerId, allBeersOfThatType - availableToSell);
+        Long availableToSell = Math.min(allBeersOfThatType, count);
+        pubStock.put(beerId, Math.max(allBeersOfThatType - availableToSell, 0L));
         return availableToSell;
     }
 

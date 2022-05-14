@@ -4,6 +4,7 @@ import com.novilabs.brewery.web.model.Brewery;
 import com.novilabs.brewery.web.model.DistributorDto;
 import com.novilabs.brewery.web.service.DistributorService;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -13,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Service
-public class DistributorServiceImpl implements DistributorService {
+public class DistributorServiceImpl implements DistributorService, ApplicationListener<DistributorRestockEventFulfilled> {
 
     private final ConcurrentHashMap <String, DistributorDto> allDistributors = new ConcurrentHashMap<>();
     private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -25,7 +26,7 @@ public class DistributorServiceImpl implements DistributorService {
         DistributorDto value = new DistributorDto();
         value.setId(UUID.randomUUID().toString());
         HashMap<String, Long> beerStock = new HashMap<>();
-        beerStock.put("666666", 0L);
+        beerStock.put("666666", 100L);
         value.setBeerStock(beerStock);
         HashMap<String, Brewery> beerProducers = new HashMap<>();
         beerProducers.put("666666", new Brewery());
@@ -34,8 +35,14 @@ public class DistributorServiceImpl implements DistributorService {
     }
 
     @Override
-    public void addBeerStock(String distributorId, String beerId, Long count) {
-
+    public void addBeerStock(String distributorId, String upc, Long count) {
+        DistributorDto distributorDto = getDistributorDto(distributorId);
+        if (distributorDto == null) {
+            throw new IllegalArgumentException(("Distributor id is invalid"));
+        }
+        HashMap<String, Long> beerStock = distributorDto.getBeerStock();
+        Long beerStockValue = beerStock.get(upc) + count;
+        beerStock.put(upc, beerStockValue);
     }
 
     @Override
@@ -57,9 +64,10 @@ public class DistributorServiceImpl implements DistributorService {
             long remainingToOrder = count - stockForBeer;
             beerStock.put(upc, 0L);
             result = remainingToOrder;
-            applicationEventPublisher.publishEvent(new DistributorRestockEvent(this, distributorId, upc, remainingToOrder + 100L));
+            // todo replace with JMS message once the monolith is decomposed
+            applicationEventPublisher.publishEvent(new DistributorRestockEvent(this, distributorId, upc, 100L));
         }
-        return count - result;
+        return result;
     }
 
     private DistributorDto getDistributorDto(String distributorId) {
@@ -74,5 +82,17 @@ public class DistributorServiceImpl implements DistributorService {
     @Override
     public Map<String, DistributorDto> getAllDistributors() {
         return allDistributors;
+    }
+
+    @Override
+    public void onApplicationEvent(DistributorRestockEventFulfilled event) {
+        applicationEventPublisher.publishEvent(new DistributorTakeStockEvent(this, event.getBeerId(), event.getCount()));
+        String upc = getUpcFromBeerId(event.getBeerId());
+        addBeerStock(event.getDistributorId(), upc, event.getCount());
+    }
+
+    private String getUpcFromBeerId(String beerId) {
+        // todo get valid value
+        return "666666";
     }
 }

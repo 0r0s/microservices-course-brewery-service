@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -19,6 +20,16 @@ public class BeerServiceImpl implements BeerService {
     @Override
     public BeerDto getBeerById(UUID uuid) {
         return beerTypes.get(uuid.toString());
+    }
+
+    @Override
+    public BeerDto getBeerByUpc(String upc) {
+        for (Map.Entry<String, BeerDto> stringBeerDtoEntry : beerTypes.entrySet()) {
+            if (stringBeerDtoEntry.getValue().getUpc().equals(upc)) {
+                return stringBeerDtoEntry.getValue();
+            }
+        }
+        return null;
     }
 
     @Override

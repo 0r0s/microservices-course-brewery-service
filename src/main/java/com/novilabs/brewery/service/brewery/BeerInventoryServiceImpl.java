@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class BeerInventoryServiceImpl implements BeerInventoryService {
-    private ConcurrentHashMap<String, Long> stock;
+    private ConcurrentHashMap<String, Long> stock = new ConcurrentHashMap<>();
 
     @Override
     public void addBeerStock(String uuid, Long count) {
@@ -15,7 +15,7 @@ public class BeerInventoryServiceImpl implements BeerInventoryService {
             if (beerCount != null) {
                 return count + beerCount;
             }
-            return 1L;
+            return count;
         });
     }
 
@@ -27,5 +27,11 @@ public class BeerInventoryServiceImpl implements BeerInventoryService {
             }
             return 0L;
         });
+    }
+
+    @Override
+    public Long getBeerStock(String uuid) {
+        Long beerStock = stock.get(uuid);
+        return beerStock == null? 0L: beerStock;
     }
 }
