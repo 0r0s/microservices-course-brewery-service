@@ -48,7 +48,6 @@ public class PubServiceImpl implements PubService, ApplicationListener<Distribut
             unfulfilledOrder.setUpc(upc);
             pub.getOrders().put(id, unfulfilledOrder);
         } else {
-            // todo add logic to increase pub stock
             Order order = new Order();
             String id = UUID.randomUUID().toString();
             order.setId(id);
@@ -56,12 +55,16 @@ public class PubServiceImpl implements PubService, ApplicationListener<Distribut
             order.setRemaining(0L);
             order.setUpc(upc);
             pub.getOrders().put(id, order);
-            ConcurrentHashMap<String, Long> pubStock = pub.getPubStock();
-            Long stockForUpc = pubStock.get(upc);
-            Long newStock = stockForUpc + count;
-            pubStock.put(upc, newStock);
             order.setRemaining(0L);
         }
+        ConcurrentHashMap<String, Long> pubStock = pub.getPubStock();
+        long restockValue = count - remaining;
+        pubStock.compute(upc, (upcId, beerCount) -> {
+            if (beerCount != null) {
+                return restockValue + beerCount;
+            }
+            return restockValue;
+        });
         return remaining;
     }
 
@@ -104,10 +107,12 @@ public class PubServiceImpl implements PubService, ApplicationListener<Distribut
                         if (remaining == 0L) {
                             order.setOrderState(OrderState.FULFILLED);
                             ConcurrentHashMap<String, Long> pubStock = pub.getPubStock();
-                            // todo fix logic to increase pub stock
-                            Long stockForUpc = pubStock.get(event.getUpc());
-                            Long newStock = stockForUpc + order.getRemaining();
-                            pubStock.put(event.getUpc(), newStock);
+                            pubStock.compute(event.getUpc(), (upcId, beerCount) -> {
+                                if (beerCount != null) {
+                                    return order.getRemaining() + beerCount;
+                                }
+                                return order.getRemaining();
+                            });
                             order.setRemaining(0L);
                         }
                     }
