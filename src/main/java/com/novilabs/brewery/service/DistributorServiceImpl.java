@@ -3,26 +3,26 @@ package com.novilabs.brewery.service;
 import com.novilabs.brewery.web.model.Brewery;
 import com.novilabs.brewery.web.model.DistributorDto;
 import com.novilabs.brewery.web.service.DistributorService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Service
 public class DistributorServiceImpl implements DistributorService, ApplicationListener<DistributorRestockEventFulfilled> {
 
     private final ConcurrentHashMap <String, DistributorDto> allDistributors = new ConcurrentHashMap<>();
-    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private ApplicationEventPublisher applicationEventPublisher;
+    private DistributorServiceEventPublisher eventPublisher;
 
-    public DistributorServiceImpl(ApplicationEventPublisher applicationEventPublisher) {
-        this.applicationEventPublisher = applicationEventPublisher;
+    public DistributorServiceImpl(DistributorServiceEventPublisher publisher) {
+        this.eventPublisher = publisher;
         DistributorDto value = new DistributorDto();
         value.setId(UUID.randomUUID().toString());
         HashMap<String, Long> beerStock = new HashMap<>();
@@ -64,15 +64,16 @@ public class DistributorServiceImpl implements DistributorService, ApplicationLi
             long remainingToOrder = count - stockForBeer;
             beerStock.put(upc, 0L);
             result = remainingToOrder;
-            // todo replace with JMS message once the monolith is decomposed
-            applicationEventPublisher.publishEvent(new DistributorRestockEvent(this, distributorId, upc, 100L));
+            eventPublisher.publishRestockEvent(distributorId, upc);
         }
         return result;
     }
 
+
+
     private DistributorDto getDistributorDto(String distributorId) {
         for (String s : allDistributors.keySet()) {
-            if (allDistributors.get(s).getId().equals(distributorId)) {
+            if (allDistributors. get(s).getId().equals(distributorId)) {
                 return allDistributors.get(s);
             }
         }
@@ -86,9 +87,10 @@ public class DistributorServiceImpl implements DistributorService, ApplicationLi
 
     @Override
     public void onApplicationEvent(DistributorRestockEventFulfilled event) {
-        applicationEventPublisher.publishEvent(new DistributorTakeStockEvent(this, event.getBeerId(), event.getCount()));
+        eventPublisher.publishEvent(new DistributorTakeStockEvent(this, event.getBeerId(), event.getCount()));
         String upc = getUpcFromBeerId(event.getBeerId());
         addBeerStock(event.getDistributorId(), upc, event.getCount());
+        eventPublisher.publishEvent(new DistributorHasStockEvent(this, event.getDistributorId(), event.getBeerId(), event.getCount()));
     }
 
     private String getUpcFromBeerId(String beerId) {

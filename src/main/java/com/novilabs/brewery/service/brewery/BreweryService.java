@@ -6,6 +6,7 @@ import com.novilabs.brewery.service.DistributorTakeStockEvent;
 import com.novilabs.brewery.web.model.BeerDto;
 import com.novilabs.brewery.web.service.BeerInventoryService;
 import com.novilabs.brewery.web.service.BeerService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import static java.lang.String.format;
 
+@Slf4j
 @Service
 public class BreweryService implements ApplicationListener<ApplicationEvent> {
     private BeerService beerService;
@@ -37,6 +39,11 @@ public class BreweryService implements ApplicationListener<ApplicationEvent> {
             Long beerStock = beerInventoryService.getBeerStock(upc);
             if (beerStock < restockEvent.getCount()) {
                 beerInventoryService.addBeerStock(upc,  restockEvent.getCount() - beerStock); // match requested bottles
+            }
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                log.info("Sleep interrupted.");
             }
             // todo replace with JMS message once the monolith is decomposed
             applicationEventPublisher.publishEvent(new DistributorRestockEventFulfilled(this, restockEvent.getDistributorId(), restockEvent.getUpc(), restockEvent.getCount()));
