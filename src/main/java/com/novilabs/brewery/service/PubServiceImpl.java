@@ -7,6 +7,7 @@ import com.novilabs.brewery.web.model.pub.Order;
 import com.novilabs.brewery.web.model.pub.OrderState;
 import com.novilabs.brewery.web.service.DistributorService;
 import com.novilabs.brewery.web.service.PubService;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.lang.String.format;
 
 @Service
-public class PubServiceImpl implements PubService, ApplicationListener<DistributorHasStockEvent> {
+public class PubServiceImpl implements PubService, ApplicationListener {
     private final HashMap<String, PubDTO> allPubs = new HashMap<>();
 
     private final DistributorService distributorService;
@@ -94,7 +95,15 @@ public class PubServiceImpl implements PubService, ApplicationListener<Distribut
     }
 
     @Override
-    public void onApplicationEvent(DistributorHasStockEvent event) {
+    public void onApplicationEvent(ApplicationEvent event) {
+        if (event instanceof DistributorHasStockEvent) {
+            handleDistributorHasNewStockEvent((DistributorHasStockEvent) event);
+        } else if (event instanceof DistributorCannotProvideStockAnymoreEvent) {
+            handleDistributorCannotProvideNewStockEvent((DistributorCannotProvideStockAnymoreEvent)event);
+        }
+    }
+
+    private void handleDistributorHasNewStockEvent(DistributorHasStockEvent event) {
         for (Map.Entry<String, PubDTO> stringPubDTOEntry : allPubs.entrySet()) {
             PubDTO pub = stringPubDTOEntry.getValue();
             ConcurrentHashMap<String, DistributorDto> distributors = pub.getDistributors();
@@ -115,6 +124,22 @@ public class PubServiceImpl implements PubService, ApplicationListener<Distribut
                             });
                             order.setRemaining(0L);
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private void handleDistributorCannotProvideNewStockEvent(DistributorCannotProvideStockAnymoreEvent event) {
+        for (Map.Entry<String, PubDTO> stringPubDTOEntry : allPubs.entrySet()) {
+            PubDTO pub = stringPubDTOEntry.getValue();
+            ConcurrentHashMap<String, DistributorDto> distributors = pub.getDistributors();
+            if (distributors.containsKey(event.getUpc())) {
+                ConcurrentHashMap<String, Order> orders = pub.getOrders();
+                for (Map.Entry<String, Order> stringOrderEntry : orders.entrySet()) {
+                    Order order = stringOrderEntry.getValue();
+                    if (order.getOrderState() == OrderState.PENDING && order.getUpc().equals(event.getUpc())) {
+                        order.setOrderState(OrderState.UNFULFILLED);
                     }
                 }
             }
