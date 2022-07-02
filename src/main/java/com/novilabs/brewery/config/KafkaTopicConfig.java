@@ -37,4 +37,9 @@ public class KafkaTopicConfig {
     public NewTopic distributorRestockNotFulfilledTopic() {
         return new NewTopic("restockEventNotFulfilled", 1, (short) 1);
     }
+
+    @Bean
+    public NewTopic distributorTakesStockTopic() {
+        return new NewTopic("distributorTakesStock", 1, (short) 1);
+    }
 }

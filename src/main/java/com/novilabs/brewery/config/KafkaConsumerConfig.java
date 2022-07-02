@@ -3,9 +3,11 @@ package com.novilabs.brewery.config;
 import com.novilabs.brewery.config.deserializers.DistributorRestockEventDeserializer;
 import com.novilabs.brewery.config.deserializers.DistributorRestockFailedEventDeserializer;
 import com.novilabs.brewery.config.deserializers.DistributorRestockFulfilledEventDeserializer;
+import com.novilabs.brewery.config.deserializers.DistributorTakesStockEventDeserializer;
 import com.novilabs.brewery.service.DistributorCannotProvideStockAnymoreEvent;
 import com.novilabs.brewery.service.DistributorRestockEvent;
 import com.novilabs.brewery.service.DistributorRestockFulfilledEvent;
+import com.novilabs.brewery.service.DistributorTakeStockEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -87,6 +89,25 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, DistributorCannotProvideStockAnymoreEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(restockFailedEventConsumerFactory());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, DistributorTakeStockEvent> distributorTakesStockEventConsumerFactory() {
+        Map<String, Object> props = getBaseProps();
+        props.put(
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                DistributorTakesStockEventDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, DistributorTakeStockEvent>
+    distributorTakesStockKafkaListenerContainerFactory() {
+
+        ConcurrentKafkaListenerContainerFactory<String, DistributorTakeStockEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(distributorTakesStockEventConsumerFactory());
         return factory;
     }
 }

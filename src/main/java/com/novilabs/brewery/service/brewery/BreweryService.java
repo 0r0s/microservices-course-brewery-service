@@ -22,7 +22,7 @@ import static java.lang.String.format;
 
 @Slf4j
 @Service
-public class BreweryService implements ApplicationListener<ApplicationEvent> {
+public class BreweryService {
     private BeerService beerService;
     private BeerInventoryService beerInventoryService;
     private ApplicationEventPublisher applicationEventPublisher;
@@ -37,13 +37,6 @@ public class BreweryService implements ApplicationListener<ApplicationEvent> {
         this.beerService = beerService;
         this.beerInventoryService = beerInventoryService;
         this.applicationEventPublisher = applicationEventPublisher;
-    }
-
-    @Override
-    public void onApplicationEvent(ApplicationEvent event) {
-        if (event instanceof DistributorTakeStockEvent) {
-            handleDistributorTakesStock((DistributorTakeStockEvent) event);
-        }
     }
 
     @KafkaListener(topics = "distributorRestockTwo", groupId = "groupOne", containerFactory = "restockKafkaListenerContainerFactory")
@@ -77,6 +70,7 @@ public class BreweryService implements ApplicationListener<ApplicationEvent> {
         }
     }
 
+    @KafkaListener(topics = "distributorTakesStock", groupId = "groupOne", containerFactory = "distributorTakesStockKafkaListenerContainerFactory")
     private void handleDistributorTakesStock(DistributorTakeStockEvent event) {
         DistributorTakeStockEvent takeStockEvent = event;
         String upc = takeStockEvent.getUpc();

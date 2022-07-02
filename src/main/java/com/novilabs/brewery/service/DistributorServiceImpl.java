@@ -3,7 +3,6 @@ package com.novilabs.brewery.service;
 import com.novilabs.brewery.web.model.Brewery;
 import com.novilabs.brewery.web.model.DistributorDto;
 import com.novilabs.brewery.web.service.DistributorService;
-import org.springframework.context.ApplicationListener;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +83,7 @@ public class DistributorServiceImpl implements DistributorService {
 
     @KafkaListener(topics = "restockEventFulfilledTwo", groupId = "groupOne", containerFactory = "restockFulfilledKafkaListenerContainerFactory")
     public void onApplicationEvent(DistributorRestockFulfilledEvent event) {
-        eventPublisher.publishEvent(new DistributorTakeStockEvent(this, event.getBeerId(), event.getCount()));
+        eventPublisher.publishTakeStockEvent(new DistributorTakeStockEvent(this, event.getBeerId(), event.getCount()));
         String upc = getUpcFromBeerId(event.getBeerId());
         addBeerStock(event.getDistributorId(), upc, event.getCount());
         eventPublisher.publishEvent(new DistributorHasStockEvent(this, event.getDistributorId(), event.getBeerId(), event.getCount()));

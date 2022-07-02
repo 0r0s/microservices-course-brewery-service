@@ -2,12 +2,14 @@ package com.novilabs.brewery.service;
 
 import org.springframework.context.ApplicationEvent;
 
-public class DistributorTakeStockEvent extends ApplicationEvent {
+public class DistributorTakeStockEvent {
     private String upc;
     private Long count;
 
+    public DistributorTakeStockEvent() {
+    }
+
     public DistributorTakeStockEvent(Object source, String beerId, Long count) {
-        super(source);
         this.upc = beerId;
         this.count = count;
     }

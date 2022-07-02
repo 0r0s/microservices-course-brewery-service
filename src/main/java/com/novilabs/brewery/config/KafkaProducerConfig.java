@@ -3,9 +3,11 @@ package com.novilabs.brewery.config;
 import com.novilabs.brewery.config.serializers.DistributorRestockEventSerializer;
 import com.novilabs.brewery.config.serializers.DistributorRestockFailedEventSerializer;
 import com.novilabs.brewery.config.serializers.DistributorRestockFulfilledEventSerializer;
+import com.novilabs.brewery.config.serializers.DistributorTakeStockEventSerializer;
 import com.novilabs.brewery.service.DistributorCannotProvideStockAnymoreEvent;
 import com.novilabs.brewery.service.DistributorRestockEvent;
 import com.novilabs.brewery.service.DistributorRestockFulfilledEvent;
+import com.novilabs.brewery.service.DistributorTakeStockEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
@@ -60,6 +62,20 @@ public class KafkaProducerConfig {
     @Bean
     public KafkaTemplate<String, DistributorCannotProvideStockAnymoreEvent> distributorRestockFailedEventKafkaTemplate() {
         return new KafkaTemplate<>(distributorRestockFailedEventProducerFactory());
+    }
+
+    @Bean
+    public ProducerFactory<String, DistributorTakeStockEvent> distributorTakeStockEventProducerFactory() {
+        Map<String, Object> configProps = getBaseProps();
+        configProps.put(
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                DistributorTakeStockEventSerializer.class);
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, DistributorTakeStockEvent> distributorTakeStockEventKafkaTemplate() {
+        return new KafkaTemplate<>(distributorTakeStockEventProducerFactory());
     }
 
     private Map<String, Object> getBaseProps() {
