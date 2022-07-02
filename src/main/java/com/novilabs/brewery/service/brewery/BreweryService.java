@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -32,13 +33,12 @@ public class BreweryService implements ApplicationListener<ApplicationEvent> {
 
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
-        if (event instanceof DistributorRestockEvent) {
-            handleDistributorRestockRequest((DistributorRestockEvent) event);
-        } else if (event instanceof DistributorTakeStockEvent) {
+        if (event instanceof DistributorTakeStockEvent) {
             handleDistributorTakesStock((DistributorTakeStockEvent) event);
         }
     }
 
+    @KafkaListener(topics = "distributorRestockTwo", groupId = "groupOne", containerFactory = "restockKafkaListenerContainerFactory")
     private void handleDistributorRestockRequest(DistributorRestockEvent event) {
         Random random = new Random();
         DistributorRestockEvent restockEvent = event;
