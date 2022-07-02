@@ -24,6 +24,14 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConsumerFactory<String, DistributorRestockEvent> restockEventConsumerFactory() {
+        Map<String, Object> props = getBaseProps();
+        props.put(
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                DistributorRestockEventDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    private Map<String, Object> getBaseProps() {
         Map<String, Object> props = new HashMap<>();
         props.put(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
@@ -31,10 +39,7 @@ public class KafkaConsumerConfig {
         props.put(
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
                 StringDeserializer.class);
-        props.put(
-                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                DistributorRestockEventDeserializer.class);
-        return new DefaultKafkaConsumerFactory<>(props);
+        return props;
     }
 
     @Bean
@@ -49,13 +54,7 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConsumerFactory<String, DistributorRestockFulfilledEvent> restockFulfilledEventConsumerFactory() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                "localhost:9092");
-        props.put(
-                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class);
+        Map<String, Object> props = getBaseProps();
         props.put(
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 DistributorRestockFulfilledEventDeserializer.class);
@@ -74,13 +73,7 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConsumerFactory<String, DistributorCannotProvideStockAnymoreEvent> restockFailedEventConsumerFactory() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                "localhost:9092");
-        props.put(
-                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class);
+        Map<String, Object> props = getBaseProps();
         props.put(
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 DistributorRestockFailedEventDeserializer.class);
