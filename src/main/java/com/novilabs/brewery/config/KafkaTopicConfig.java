@@ -27,4 +27,9 @@ public class KafkaTopicConfig {
     public NewTopic distributorRestockTopic() {
         return new NewTopic("distributorRestockTwo", 1, (short) 1);
     }
+
+    @Bean
+    public NewTopic distributorRestockFulfilledTopic() {
+        return new NewTopic("restockEventFulfilledTwo", 1, (short) 1);
+    }
 }

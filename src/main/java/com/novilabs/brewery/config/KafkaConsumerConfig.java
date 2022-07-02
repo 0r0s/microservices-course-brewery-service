@@ -1,6 +1,9 @@
 package com.novilabs.brewery.config;
 
+import com.novilabs.brewery.config.deserializers.DistributorRestockEventDeserializer;
+import com.novilabs.brewery.config.deserializers.DistributorRestockFulfilledEventDeserializer;
 import com.novilabs.brewery.service.DistributorRestockEvent;
+import com.novilabs.brewery.service.DistributorRestockFulfilledEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +21,7 @@ import java.util.Map;
 public class KafkaConsumerConfig {
 
     @Bean
-    public ConsumerFactory<String, DistributorRestockEvent> consumerFactory() {
+    public ConsumerFactory<String, DistributorRestockEvent> restockEventConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
@@ -38,7 +41,32 @@ public class KafkaConsumerConfig {
 
         ConcurrentKafkaListenerContainerFactory<String, DistributorRestockEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
+        factory.setConsumerFactory(restockEventConsumerFactory());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, DistributorRestockFulfilledEvent> restockFulfilledEventConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                "localhost:9092");
+        props.put(
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                StringDeserializer.class);
+        props.put(
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                DistributorRestockFulfilledEventDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, DistributorRestockFulfilledEvent>
+    restockFulfilledKafkaListenerContainerFactory() {
+
+        ConcurrentKafkaListenerContainerFactory<String, DistributorRestockFulfilledEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(restockFulfilledEventConsumerFactory());
         return factory;
     }
 }

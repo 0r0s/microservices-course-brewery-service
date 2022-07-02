@@ -24,7 +24,10 @@ public class DistributorServiceEventPublisher {
         kafkaTemplate.send("distributorRestockTwo", new DistributorRestockEvent(distributorId, upc, 100L));
     }
 
-    void publishEvent(ApplicationEvent applicationEvent) {
-        applicationEventPublisher.publishEvent(applicationEvent);
+    public void publishEvent(DistributorTakeStockEvent distributorTakeStockEvent) {
+
+    }
+
+    public void publishEvent(DistributorHasStockEvent distributorHasStockEvent) {
     }
 }

@@ -1,17 +1,19 @@
 package com.novilabs.brewery.service.brewery;
 
 import com.novilabs.brewery.service.DistributorCannotProvideStockAnymoreEvent;
-import com.novilabs.brewery.service.DistributorRestockEventFulfilled;
+import com.novilabs.brewery.service.DistributorRestockFulfilledEvent;
 import com.novilabs.brewery.service.DistributorRestockEvent;
 import com.novilabs.brewery.service.DistributorTakeStockEvent;
 import com.novilabs.brewery.web.model.BeerDto;
 import com.novilabs.brewery.web.service.BeerInventoryService;
 import com.novilabs.brewery.web.service.BeerService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -24,6 +26,9 @@ public class BreweryService implements ApplicationListener<ApplicationEvent> {
     private BeerService beerService;
     private BeerInventoryService beerInventoryService;
     private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    private KafkaTemplate<String, DistributorRestockFulfilledEvent> kafkaTemplate;
 
     public BreweryService(BeerService beerService, BeerInventoryService beerInventoryService, ApplicationEventPublisher applicationEventPublisher) {
         this.beerService = beerService;
@@ -56,10 +61,9 @@ public class BreweryService implements ApplicationListener<ApplicationEvent> {
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
-                log.info("Sleep interrupted.");
+                log.info("SleepÏ interrupted.");
             }
-            // todo replace with JMS message once the monolith is decomposed
-            applicationEventPublisher.publishEvent(new DistributorRestockEventFulfilled(this, restockEvent.getDistributorId(), restockEvent.getUpc(), restockEvent.getCount()));
+            kafkaTemplate.send("restockEventFulfilledTwo", new DistributorRestockFulfilledEvent(restockEvent.getDistributorId(), restockEvent.getUpc(), restockEvent.getCount()));
         } else {
             try {
                 Thread.sleep(10000);

@@ -1,14 +1,14 @@
-package com.novilabs.brewery.config;
+package com.novilabs.brewery.config.serializers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.novilabs.brewery.service.DistributorRestockEvent;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
 
-public class DistributorRestockEventSerializer implements Serializer<DistributorRestockEvent> {
+public class ToByteArraySerializer<T> implements Serializer<T> {
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Override
-    public byte[] serialize(String topic, DistributorRestockEvent data) {
+    public byte[] serialize(String topic, T data) {
         try {
             if (data == null){
                 return null;

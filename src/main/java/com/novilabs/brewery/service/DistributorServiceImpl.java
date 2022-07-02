@@ -3,10 +3,8 @@ package com.novilabs.brewery.service;
 import com.novilabs.brewery.web.model.Brewery;
 import com.novilabs.brewery.web.model.DistributorDto;
 import com.novilabs.brewery.web.service.DistributorService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -15,7 +13,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class DistributorServiceImpl implements DistributorService, ApplicationListener<DistributorRestockEventFulfilled> {
+public class DistributorServiceImpl implements DistributorService {
 
     private final ConcurrentHashMap <String, DistributorDto> allDistributors = new ConcurrentHashMap<>();
 
@@ -69,8 +67,6 @@ public class DistributorServiceImpl implements DistributorService, ApplicationLi
         return result;
     }
 
-
-
     private DistributorDto getDistributorDto(String distributorId) {
         for (String s : allDistributors.keySet()) {
             if (allDistributors. get(s).getId().equals(distributorId)) {
@@ -85,8 +81,9 @@ public class DistributorServiceImpl implements DistributorService, ApplicationLi
         return allDistributors;
     }
 
-    @Override
-    public void onApplicationEvent(DistributorRestockEventFulfilled event) {
+
+    @KafkaListener(topics = "restockEventFulfilledTwo", groupId = "groupOne", containerFactory = "restockFulfilledKafkaListenerContainerFactory")
+    public void onApplicationEvent(DistributorRestockFulfilledEvent event) {
         eventPublisher.publishEvent(new DistributorTakeStockEvent(this, event.getBeerId(), event.getCount()));
         String upc = getUpcFromBeerId(event.getBeerId());
         addBeerStock(event.getDistributorId(), upc, event.getCount());
