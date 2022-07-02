@@ -86,7 +86,7 @@ public class DistributorServiceImpl implements DistributorService {
         eventPublisher.publishTakeStockEvent(new DistributorTakeStockEvent(this, event.getBeerId(), event.getCount()));
         String upc = getUpcFromBeerId(event.getBeerId());
         addBeerStock(event.getDistributorId(), upc, event.getCount());
-        eventPublisher.publishEvent(new DistributorHasStockEvent(this, event.getDistributorId(), event.getBeerId(), event.getCount()));
+        eventPublisher.publishHasStockEvent(new DistributorHasStockEvent(event.getDistributorId(), event.getBeerId(), event.getCount()));
     }
 
     private String getUpcFromBeerId(String beerId) {

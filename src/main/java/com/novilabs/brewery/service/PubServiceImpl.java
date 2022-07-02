@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.lang.String.format;
 
 @Service
-public class PubServiceImpl implements PubService, ApplicationListener {
+public class PubServiceImpl implements PubService {
     private final HashMap<String, PubDTO> allPubs = new HashMap<>();
 
     private final DistributorService distributorService;
@@ -95,13 +95,8 @@ public class PubServiceImpl implements PubService, ApplicationListener {
         return pubDTO;
     }
 
-    @Override
-    public void onApplicationEvent(ApplicationEvent event) {
-        if (event instanceof DistributorHasStockEvent) {
-            handleDistributorHasNewStockEvent((DistributorHasStockEvent) event);
-        }
-    }
-    private void handleDistributorHasNewStockEvent(DistributorHasStockEvent event) {
+    @KafkaListener(topics = "distributorHasNewStockTwo", groupId = "groupOne", containerFactory = "distributorHasNewStockKafkaListenerContainerFactory")
+    public void handleDistributorHasNewStockEvent(DistributorHasStockEvent event) {
         for (Map.Entry<String, PubDTO> stringPubDTOEntry : allPubs.entrySet()) {
             PubDTO pub = stringPubDTOEntry.getValue();
             ConcurrentHashMap<String, DistributorDto> distributors = pub.getDistributors();

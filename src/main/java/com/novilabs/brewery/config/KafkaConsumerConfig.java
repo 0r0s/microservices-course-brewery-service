@@ -1,13 +1,7 @@
 package com.novilabs.brewery.config;
 
-import com.novilabs.brewery.config.deserializers.DistributorRestockEventDeserializer;
-import com.novilabs.brewery.config.deserializers.DistributorRestockFailedEventDeserializer;
-import com.novilabs.brewery.config.deserializers.DistributorRestockFulfilledEventDeserializer;
-import com.novilabs.brewery.config.deserializers.DistributorTakesStockEventDeserializer;
-import com.novilabs.brewery.service.DistributorCannotProvideStockAnymoreEvent;
-import com.novilabs.brewery.service.DistributorRestockEvent;
-import com.novilabs.brewery.service.DistributorRestockFulfilledEvent;
-import com.novilabs.brewery.service.DistributorTakeStockEvent;
+import com.novilabs.brewery.config.deserializers.*;
+import com.novilabs.brewery.service.*;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -31,17 +25,6 @@ public class KafkaConsumerConfig {
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 DistributorRestockEventDeserializer.class);
         return new DefaultKafkaConsumerFactory<>(props);
-    }
-
-    private Map<String, Object> getBaseProps() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                "localhost:9092");
-        props.put(
-                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class);
-        return props;
     }
 
     @Bean
@@ -109,5 +92,35 @@ public class KafkaConsumerConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(distributorTakesStockEventConsumerFactory());
         return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, DistributorHasStockEvent> distributorHasNewStockEventConsumerFactory() {
+        Map<String, Object> props = getBaseProps();
+        props.put(
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                DistributorHasNewStockEventDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, DistributorHasStockEvent>
+    distributorHasNewStockKafkaListenerContainerFactory() {
+
+        ConcurrentKafkaListenerContainerFactory<String, DistributorHasStockEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(distributorHasNewStockEventConsumerFactory());
+        return factory;
+    }
+
+    private Map<String, Object> getBaseProps() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                "localhost:9092");
+        props.put(
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                StringDeserializer.class);
+        return props;
     }
 }

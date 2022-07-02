@@ -42,4 +42,9 @@ public class KafkaTopicConfig {
     public NewTopic distributorTakesStockTopic() {
         return new NewTopic("distributorTakesStock", 1, (short) 1);
     }
+
+    @Bean
+    public NewTopic distributorHasNewStock() {
+        return new NewTopic("distributorHasNewStockTwo", 1, (short) 1);
+    }
 }
