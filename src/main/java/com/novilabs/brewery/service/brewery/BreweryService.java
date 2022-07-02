@@ -28,7 +28,10 @@ public class BreweryService implements ApplicationListener<ApplicationEvent> {
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    private KafkaTemplate<String, DistributorRestockFulfilledEvent> kafkaTemplate;
+    private KafkaTemplate<String, DistributorRestockFulfilledEvent> restockFulfilledKafkaTemplate;
+
+    @Autowired
+    private KafkaTemplate<String, DistributorCannotProvideStockAnymoreEvent> restockFailedKafkaTemplate;
 
     public BreweryService(BeerService beerService, BeerInventoryService beerInventoryService, ApplicationEventPublisher applicationEventPublisher) {
         this.beerService = beerService;
@@ -63,14 +66,14 @@ public class BreweryService implements ApplicationListener<ApplicationEvent> {
             } catch (InterruptedException e) {
                 log.info("SleepÏ interrupted.");
             }
-            kafkaTemplate.send("restockEventFulfilledTwo", new DistributorRestockFulfilledEvent(restockEvent.getDistributorId(), restockEvent.getUpc(), restockEvent.getCount()));
+            restockFulfilledKafkaTemplate.send("restockEventFulfilledTwo", new DistributorRestockFulfilledEvent(restockEvent.getDistributorId(), restockEvent.getUpc(), restockEvent.getCount()));
         } else {
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
                 log.info("Sleep interrupted.");
             }
-            applicationEventPublisher.publishEvent(new DistributorCannotProvideStockAnymoreEvent(this, restockEvent.getDistributorId(), restockEvent.getUpc(), restockEvent.getCount()));
+            restockFailedKafkaTemplate.send("restockEventNotFulfilled", new DistributorCannotProvideStockAnymoreEvent(restockEvent.getDistributorId(), restockEvent.getUpc(), restockEvent.getCount()));
         }
     }
 

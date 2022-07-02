@@ -9,6 +9,7 @@ import com.novilabs.brewery.web.service.DistributorService;
 import com.novilabs.brewery.web.service.PubService;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -98,11 +99,8 @@ public class PubServiceImpl implements PubService, ApplicationListener {
     public void onApplicationEvent(ApplicationEvent event) {
         if (event instanceof DistributorHasStockEvent) {
             handleDistributorHasNewStockEvent((DistributorHasStockEvent) event);
-        } else if (event instanceof DistributorCannotProvideStockAnymoreEvent) {
-            handleDistributorCannotProvideNewStockEvent((DistributorCannotProvideStockAnymoreEvent)event);
         }
     }
-
     private void handleDistributorHasNewStockEvent(DistributorHasStockEvent event) {
         for (Map.Entry<String, PubDTO> stringPubDTOEntry : allPubs.entrySet()) {
             PubDTO pub = stringPubDTOEntry.getValue();
@@ -130,7 +128,8 @@ public class PubServiceImpl implements PubService, ApplicationListener {
         }
     }
 
-    private void handleDistributorCannotProvideNewStockEvent(DistributorCannotProvideStockAnymoreEvent event) {
+    @KafkaListener(topics = "restockEventNotFulfilled", groupId = "groupOne", containerFactory = "restockFailedKafkaListenerContainerFactory")
+    public void handleDistributorCannotProvideNewStockEvent(DistributorCannotProvideStockAnymoreEvent event) {
         for (Map.Entry<String, PubDTO> stringPubDTOEntry : allPubs.entrySet()) {
             PubDTO pub = stringPubDTOEntry.getValue();
             ConcurrentHashMap<String, DistributorDto> distributors = pub.getDistributors();

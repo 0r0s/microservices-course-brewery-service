@@ -2,13 +2,15 @@ package com.novilabs.brewery.service;
 
 import org.springframework.context.ApplicationEvent;
 
-public class DistributorCannotProvideStockAnymoreEvent extends ApplicationEvent {
+public class DistributorCannotProvideStockAnymoreEvent {
     private String distributorId;
     private String upc;
     private Long count;
 
-    public DistributorCannotProvideStockAnymoreEvent(Object source, String distributorId, String upc, Long count) {
-        super(source);
+    public DistributorCannotProvideStockAnymoreEvent() {
+    }
+
+    public DistributorCannotProvideStockAnymoreEvent(String distributorId, String upc, Long count) {
         this.distributorId = distributorId;
         this.upc = upc;
         this.count = count;
